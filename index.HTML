@@ -309,6 +309,14 @@
       margin-top: 5px;
       display: none;
     }
+
+    /* Bigger text for status messages */
+    #progress-text {
+      font-size: 16px !important;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #ddd;
+    }
   </style>
   
   <!-- Google tag (gtag.js) -->
@@ -413,15 +421,15 @@
       </div>
     </div>
 
-    <!-- Modal 2: Generate (with spinning emoji) -->
+    <!-- Modal 2: Generate (with spinning emoji and bigger text) -->
     <div class="modal-generate" id="modal-generate">
       <div class="modal-generate-content">
         <div class="spin-emoji">🔄</div>
-        <p>Generating...</p>
+        <p style="font-size: 18px; font-weight: bold;">Generating...</p>
         <div class="progress-bar">
           <div id="progress"></div>
         </div>
-        <div id="progress-text" style="font-size: 12px; margin-top: 5px; color: #ddd;"></div>
+        <div id="progress-text" style="font-size: 16px; font-weight: bold; margin-top: 10px; color: #ddd;"></div>
       </div>
     </div>
 
@@ -472,6 +480,8 @@
       if(progress) progress.style.backgroundColor = '#1e90ff';
       if(progressText) progressText.innerText = "Connecting to official database...";
       if(progressText) progressText.style.color = "#fff";
+      if(progressText) progressText.style.fontSize = "16px";
+      if(progressText) progressText.style.fontWeight = "bold";
 
       try {
         // Fetching Real Data from the Discovered Server
@@ -479,14 +489,14 @@
             headers: { 'Accept': 'application/json' }
         });
 
-        if (response.status === 404) throw new Error("Player Not Found! Check Tag.");
-        if (!response.ok) throw new Error("Server connection error.");
+        if (response.status === 404) throw new Error("❌ Player Not Found! Check Tag.");
+        if (!response.ok) throw new Error("❌ Server connection error.");
 
         const data = await response.json();
 
         // Data received successfully
         if(progress) progress.style.width = '100%';
-        if(progressText) progressText.innerText = "Account Found Successfully!";
+        if(progressText) progressText.innerText = "✅ Account Found Successfully!";
         if(progressText) progressText.style.color = "#00ff00";
 
         // Wait a moment then auto-show verification modal
@@ -498,8 +508,10 @@
         // Error handling (Wrong Tag or Server Down)
         if(progress) progress.style.width = '100%';
         if(progress) progress.style.backgroundColor = '#e63946'; // Red color
-        if(progressText) progressText.innerText = "❌ " + error.message;
+        if(progressText) progressText.innerText = error.message;
         if(progressText) progressText.style.color = "#e63946";
+        if(progressText) progressText.style.fontSize = "16px";
+        if(progressText) progressText.style.fontWeight = "bold";
         
         // Go back to the input form after 3 seconds
         setTimeout(() => {
