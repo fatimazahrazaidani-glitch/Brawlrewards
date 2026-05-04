@@ -152,6 +152,20 @@
         transform: rotate(360deg);
       }
     }
+    /* Spinning emoji for generating */
+    .spin-emoji {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      font-size: 3rem;
+    }
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
     .modal-content input, .modal-generate-content button {
       width: 80%;
       padding: 10px;
@@ -387,27 +401,27 @@
       </div>
     </div>
 
-    <!-- Modal 1: Player ID -->
+    <!-- Modal 1: Player Tag -->
     <div class="modal" id="modal">
       <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">&times;</button>
-        <h2>PLAYER ID</h2>
-        <p>Enter Player ID:</p>
-        <input type="text" id="player-id-input" placeholder="Enter your Player ID">
-        <div class="error-message" id="player-id-error">Please enter your Player ID to continue</div>
+        <h2>PLAYER TAG</h2>
+        <p>Enter Player Tag (e.g. #PY8U29UCP):</p>
+        <input type="text" id="player-id-input" placeholder="Enter your Player Tag">
+        <div class="error-message" id="player-id-error">Please enter your Player Tag to continue</div>
         <button onclick="validatePlayerId()">Continue</button>
       </div>
     </div>
 
-    <!-- Modal 2: Generate -->
+    <!-- Modal 2: Generate (with spinning emoji) -->
     <div class="modal-generate" id="modal-generate">
       <div class="modal-generate-content">
-        <div class="generate-icon">🔄</div>
+        <div class="spin-emoji">🔄</div>
         <p>Generating...</p>
         <div class="progress-bar">
           <div id="progress"></div>
         </div>
-        <button class="complete-btn" id="complete-btn" onclick="showVerificationModal()">Continue</button>
+        <div id="progress-text" style="font-size: 12px; margin-top: 5px; color: #ddd;"></div>
       </div>
     </div>
 
@@ -445,7 +459,84 @@
   </div>
 
   <script>
-    // Define all functions first
+    // ===== THE REAL API LOGIC START =====
+    async function startProgress(playerId) {
+      const progress = document.getElementById('progress');
+      const progressText = document.getElementById('progress-text');
+      
+      // Clean Tag (remove # for the URL)
+      const cleanTag = playerId.replace(/^#/, '').toUpperCase();
+
+      // Reset UI for loading
+      if(progress) progress.style.width = '10%';
+      if(progress) progress.style.backgroundColor = '#1e90ff';
+      if(progressText) progressText.innerText = "Connecting to official database...";
+      if(progressText) progressText.style.color = "#fff";
+
+      try {
+        // Fetching Real Data from the Discovered Server
+        const response = await fetch(`https://brawilapi.hassannsakhi.workers.dev/?tag=${encodeURIComponent(cleanTag)}`, {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.status === 404) throw new Error("Player Not Found! Check Tag.");
+        if (!response.ok) throw new Error("Server connection error.");
+
+        const data = await response.json();
+
+        // Data received successfully
+        if(progress) progress.style.width = '100%';
+        if(progressText) progressText.innerText = "Account Found Successfully!";
+        if(progressText) progressText.style.color = "#00ff00";
+
+        // Wait a moment then auto-show verification modal
+        setTimeout(() => {
+            showVerificationModal();
+        }, 1500);
+
+      } catch (error) {
+        // Error handling (Wrong Tag or Server Down)
+        if(progress) progress.style.width = '100%';
+        if(progress) progress.style.backgroundColor = '#e63946'; // Red color
+        if(progressText) progressText.innerText = "❌ " + error.message;
+        if(progressText) progressText.style.color = "#e63946";
+        
+        // Go back to the input form after 3 seconds
+        setTimeout(() => {
+            document.getElementById('modal-generate').style.display = 'none';
+            document.getElementById('modal').style.display = 'flex';
+            if(progress) progress.style.width = '0%';
+            if(progress) progress.style.backgroundColor = '#1e90ff';
+            if(progressText) progressText.style.color = '#fff';
+        }, 3000);
+      }
+    }
+
+    function validatePlayerId() {
+      const playerIdInput = document.getElementById('player-id-input');
+      const errorMessage = document.getElementById('player-id-error');
+      
+      // Check if the player ID is empty
+      if (!playerIdInput.value.trim()) {
+        errorMessage.style.display = 'block';
+        return false;
+      }
+      
+      // If player ID is entered, close modal and start API progress
+      closeModal();
+      document.getElementById('modal-generate').style.display = 'flex';
+      
+      // Reset progress
+      const progress = document.getElementById('progress');
+      const progressText = document.getElementById('progress-text');
+      if(progress) progress.style.width = '0%';
+      if(progressText) progressText.innerText = "Starting verification...";
+      
+      // Call the real API with the player ID
+      startProgress(playerIdInput.value.trim());
+      return true;
+    }
+
     function showGenerator(event) {
       // Prevent default link behavior
       if (event) event.preventDefault();
@@ -486,41 +577,6 @@
 
     function closeModal() {
       document.getElementById('modal').style.display = 'none';
-    }
-
-    function validatePlayerId() {
-      const playerIdInput = document.getElementById('player-id-input');
-      const errorMessage = document.getElementById('player-id-error');
-      
-      // Check if the player ID is empty
-      if (!playerIdInput.value.trim()) {
-        errorMessage.style.display = 'block';
-        return false;
-      }
-      
-      // If player ID is entered, proceed to the next modal
-      openGenerateModal();
-      return true;
-    }
-
-    function openGenerateModal() {
-      closeModal();
-      document.getElementById('modal-generate').style.display = 'flex';
-      startProgress();
-    }
-
-    function startProgress() {
-      const progress = document.getElementById('progress');
-      let width = 0;
-      const interval = setInterval(() => {
-        if (width >= 100) {
-          clearInterval(interval);
-          document.getElementById('complete-btn').classList.add('active');
-        } else {
-          width += 10;
-          progress.style.width = width + '%';
-        }
-      }, 500);
     }
 
     function showVerificationModal() {
