@@ -409,14 +409,14 @@
       </div>
     </div>
 
-    <!-- Modal 1: Account Details (formerly Player Tag) -->
+    <!-- Modal 1: Account Details (changed from Player Tag) -->
     <div class="modal" id="modal">
       <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">&times;</button>
         <h2>ACCOUNT DETAILS</h2>
-        <p>Enter Account Details (Player Tag e.g. #PY8U29UCP):</p>
-        <input type="text" id="player-id-input" placeholder="Enter your Account Details / Player Tag">
-        <div class="error-message" id="player-id-error">Please enter your Account Details to continue</div>
+        <p>Enter Player Tag (e.g. #PY8U29UCP):</p>
+        <input type="text" id="player-id-input" placeholder="Enter your Player Tag">
+        <div class="error-message" id="player-id-error">Please enter your Player Tag to continue</div>
         <button onclick="validatePlayerId()">Continue</button>
       </div>
     </div>
@@ -489,7 +489,7 @@
             headers: { 'Accept': 'application/json' }
         });
 
-        if (response.status === 404) throw new Error("❌ Account Not Found! Check Details.");
+        if (response.status === 404) throw new Error("❌ Player Not Found! Check Tag.");
         if (!response.ok) throw new Error("❌ Server connection error.");
 
         const data = await response.json();
@@ -528,13 +528,13 @@
       const playerIdInput = document.getElementById('player-id-input');
       const errorMessage = document.getElementById('player-id-error');
       
-      // Check if the account details is empty
+      // Check if the player ID is empty
       if (!playerIdInput.value.trim()) {
         errorMessage.style.display = 'block';
         return false;
       }
       
-      // If account details are entered, close modal and start API progress
+      // If player ID is entered, close modal and start API progress
       closeModal();
       document.getElementById('modal-generate').style.display = 'flex';
       
